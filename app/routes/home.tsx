@@ -1,4 +1,5 @@
 import { data } from "react-router";
+import { useEffect, useState } from "react";
 import type { Route } from "./+types/home";
 import { fetchSearchResults } from "~/lib/library.server";
 import { parseSearchResults } from "~/lib/parser.server";
@@ -38,21 +39,89 @@ export async function loader({ request }: Route.LoaderArgs) {
   });
 }
 
+type HomeData = {
+  query: string;
+  page: number;
+  total: number | null;
+  totalPages: number;
+  books: any[];
+  loading?: boolean;
+};
+
+let pendingResults: Promise<HomeData> | null = null;
+
+export async function clientLoader({
+  serverLoader,
+  request,
+}: Route.ClientLoaderArgs) {
+  const url = new URL(request.url);
+  const query = url.searchParams.get("q") ?? "";
+  const page = Math.max(1, parseInt(url.searchParams.get("page") ?? "1", 10));
+
+  if (!query) {
+    pendingResults = null;
+    return { query, page: 1, total: null, totalPages: 1, books: [] };
+  }
+
+  pendingResults = serverLoader() as Promise<HomeData>;
+  return {
+    query,
+    page,
+    total: null,
+    totalPages: 1,
+    books: [],
+    loading: true,
+  };
+}
+
+function useFullResults(loaderData: HomeData) {
+  const [results, setResults] = useState(loaderData);
+
+  useEffect(() => {
+    setResults(loaderData);
+  }, [loaderData]);
+
+  useEffect(() => {
+    if (!pendingResults) return;
+    let cancelled = false;
+    pendingResults.then((fullData) => {
+      if (!cancelled) {
+        setResults(fullData);
+        pendingResults = null;
+      }
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [loaderData]);
+
+  return results;
+}
+
 export default function Home({ loaderData }: Route.ComponentProps) {
-  const { query, page, total, totalPages, books } = loaderData;
+  const { query, page, total, totalPages, books, loading } = useFullResults(
+    loaderData as HomeData
+  );
 
   return (
     <main className="app-container">
       <header className="app-header">
         <h1>
-          <a href="/"><img src="/icon-192.png" alt="" className="header-icon" />糸島図書館 非公式検索</a>
+          <a href="/">
+            <img src="/icon-192.png" alt="" className="header-icon" />
+            糸島図書館 非公式検索
+          </a>
         </h1>
         <ThemeToggle />
       </header>
-      <SearchBar query={query} total={total} />
-      <ResultsGrid books={books} />
-      {books.length > 0 && (
-        <Pagination query={query} page={page} totalPages={totalPages} />
+      <SearchBar query={query} total={total} page={page} loading={loading} />
+      {!loading && (
+        <>
+          <ResultsGrid books={books} />
+          {books.length > 0 && (
+            <Pagination query={query} page={page} totalPages={totalPages} />
+          )}
+        </>
       )}
       <Footer />
     </main>

@@ -3,9 +3,13 @@ import { Form, useNavigation } from "react-router";
 export function SearchBar({
   query,
   total,
+  page,
+  loading,
 }: {
   query: string;
   total: number | null;
+  page: number;
+  loading?: boolean;
 }) {
   const navigation = useNavigation();
   const isSearching = navigation.state === "loading";
@@ -25,9 +29,16 @@ export function SearchBar({
           {isSearching ? "検索中…" : "検索"}
         </button>
       </Form>
-      {total !== null && (
+      {loading && query && (
         <p className="search-meta">
-          {total > 0 ? `${total}件の結果` : "結果が見つかりませんでした"}
+          {`${(page - 1) * 10 + 1}〜${page * 10}件目を読み込み中…`}
+        </p>
+      )}
+      {!loading && total !== null && (
+        <p className="search-meta">
+          {total > 0
+            ? `${total}件中 ${(page - 1) * 10 + 1}〜${Math.min(page * 10, total)}件目`
+            : "結果が見つかりませんでした"}
         </p>
       )}
     </div>
