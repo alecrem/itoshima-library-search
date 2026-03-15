@@ -129,7 +129,7 @@ export default function BookDetailPage({ loaderData }: Route.ComponentProps) {
     <main className="app-container">
       <header className="app-header">
         <h1>
-          <Link to="/">糸島図書館 非公式検索</Link>
+          <Link to="/"><img src="/icon-192.png" alt="" className="header-icon" />糸島図書館 非公式検索</Link>
         </h1>
         <ThemeToggle />
       </header>

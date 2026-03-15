@@ -37,7 +37,11 @@ html.dark {
 }
 
 .app-header a {
-  @apply text-stone-900 dark:text-slate-100 no-underline;
+  @apply text-stone-900 dark:text-slate-100 no-underline flex items-center gap-2;
+}
+
+.header-icon {
+  @apply w-7 h-7 inline-block;
 }
 
 /* Theme Toggle */

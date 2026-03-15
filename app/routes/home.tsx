@@ -45,7 +45,7 @@ export default function Home({ loaderData }: Route.ComponentProps) {
     <main className="app-container">
       <header className="app-header">
         <h1>
-          <a href="/">糸島図書館 非公式検索</a>
+          <a href="/"><img src="/icon-192.png" alt="" className="header-icon" />糸島図書館 非公式検索</a>
         </h1>
         <ThemeToggle />
       </header>
