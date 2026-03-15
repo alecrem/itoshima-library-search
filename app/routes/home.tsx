@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import type { Route } from "./+types/home";
 import { fetchSearchResults } from "~/lib/library.server";
 import { parseSearchResults } from "~/lib/parser.server";
+import type { Book } from "~/lib/parser.server";
 import { getCachedSearchPage, cacheSearchPage } from "~/lib/book-cache";
 import { SearchBar } from "~/components/SearchBar";
 import { ResultsGrid } from "~/components/ResultsGrid";
@@ -45,7 +46,7 @@ type HomeData = {
   page: number;
   total: number | null;
   totalPages: number;
-  books: any[];
+  books: Book[];
   loading?: boolean;
 };
 

@@ -155,7 +155,7 @@ export function parseBookDetail(html: string): BookDetail {
   const holdings: Holding[] = [];
   $('table[summary="資料毎の状態表"] tbody tr').each((_i, el) => {
     const $tds = $(el).find("td");
-    if ($tds.length >= 5) {
+    if ($tds.length >= 6) {
       holdings.push({
         library: $tds.eq(1).text().trim(),
         type: $tds.eq(2).text().trim(),
