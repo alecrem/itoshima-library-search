@@ -1,42 +1,42 @@
-# Itoshima Library Search (非公式)
+# 糸島図書館 非公式検索
 
-Modern, unofficial search frontend for the Itoshima municipal library (糸島市立図書館).
-This is **not** an official product of the library — it's a community tool by active users.
-The official library site is [lib-itoshima.jp](https://www.lib-itoshima.jp/WebOpac/webopac/selectsearch.do).
+糸島市立図書館のモダンな非公式検索フロントエンドです。
+図書館の**公式サイトではありません** — 利用者によるコミュニティツールです。
+公式サイトは [lib-itoshima.jp](https://www.lib-itoshima.jp/WebOpac/webopac/selectsearch.do) です。
 
-## Setup
+## セットアップ
 
 ```bash
 pnpm install
 ```
 
-## Development
+## 開発
 
 ```bash
 pnpm dev
 ```
 
-Open [http://localhost:5173](http://localhost:5173)
+[http://localhost:5173](http://localhost:5173) を開いてください。
 
-## Tests
+## テスト
 
 ```bash
 pnpm test
 ```
 
-## Build & Production
+## ビルド・本番環境
 
 ```bash
 pnpm build
 pnpm start
 ```
 
-## How it works
+## 仕組み
 
-The app proxies search requests to the library's WebOPAC system server-side
-(via React Router loaders), parses the HTML responses with cheerio, and renders
-results as a modern React UI. URLs are shareable — e.g. `/?q=宮沢賢治&page=2`.
+図書館の WebOPAC システムへの検索リクエストをサーバーサイドでプロキシし
+（React Router の loader 経由）、HTML レスポンスを cheerio でパースして
+モダンな React UI で表示します。URL は共有可能です — 例: `/?q=宮沢賢治&page=2`
 
-Book cover thumbnails are loaded client-side via the
-[Google Books API](https://developers.google.com/books/docs/v1/using#PerformingSearch)
-by ISBN. Not every book has a cover — Japanese-only titles often don't.
+表紙は [Google Books API](https://developers.google.com/books/docs/v1/using#PerformingSearch)
+を使い、ISBN をもとにクライアントサイドで取得します。
+すべての本に表紙があるわけではありません。
