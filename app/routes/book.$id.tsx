@@ -5,7 +5,7 @@ import type { Route } from "./+types/book.$id";
 import { fetchBookDetail } from "~/lib/library.server";
 import { parseBookDetail } from "~/lib/parser.server";
 import type { BookDetail, Holding } from "~/lib/parser.server";
-import { getCachedBook } from "~/lib/book-cache";
+import { getCachedBook, getCachedBookDetail, cacheBookDetail } from "~/lib/book-cache";
 import { useBookCover } from "~/hooks/useBookCover";
 import { BookPlaceholder } from "~/components/BookPlaceholder";
 import { LibraryLink } from "~/components/LibraryLink";
@@ -50,7 +50,15 @@ export async function clientLoader({
   serverLoader,
   params,
 }: Route.ClientLoaderArgs) {
-  const cached = getCachedBook(params.id!);
+  const id = params.id!;
+
+  const cachedDetail = getCachedBookDetail(id);
+  if (cachedDetail) {
+    pendingDetail = null;
+    return { ...cachedDetail, bookId: id, partial: false };
+  }
+
+  const cached = getCachedBook(id);
   if (cached) {
     pendingDetail = serverLoader() as Promise<DetailData>;
     return {
@@ -71,6 +79,7 @@ export async function clientLoader({
       partial: true,
     };
   }
+
   pendingDetail = null;
   return serverLoader();
 }
@@ -90,6 +99,7 @@ function useFullDetail(loaderData: DetailData) {
       if (!cancelled) {
         setDetail(fullData);
         pendingDetail = null;
+        cacheBookDetail(fullData.bookId, fullData);
       }
     });
     return () => {
@@ -103,6 +113,12 @@ function useFullDetail(loaderData: DetailData) {
 export default function BookDetailPage({ loaderData }: Route.ComponentProps) {
   const detail = useFullDetail(loaderData as unknown as DetailData);
   const coverUrl = useBookCover(detail.isbn);
+
+  useEffect(() => {
+    if (!detail.partial && detail.bookId) {
+      cacheBookDetail(detail.bookId, detail);
+    }
+  }, [detail]);
 
   return (
     <main className="app-container">

@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import type { Route } from "./+types/home";
 import { fetchSearchResults } from "~/lib/library.server";
 import { parseSearchResults } from "~/lib/parser.server";
+import { getCachedSearchPage, cacheSearchPage } from "~/lib/book-cache";
 import { SearchBar } from "~/components/SearchBar";
 import { ResultsGrid } from "~/components/ResultsGrid";
 import { Pagination } from "~/components/Pagination";
@@ -63,6 +64,12 @@ export async function clientLoader({
     return { query, page: 1, total: null, totalPages: 1, books: [] };
   }
 
+  const cached = getCachedSearchPage(query, page);
+  if (cached) {
+    pendingResults = null;
+    return { ...cached, loading: false };
+  }
+
   pendingResults = serverLoader() as Promise<HomeData>;
   return {
     query,
@@ -88,6 +95,9 @@ function useFullResults(loaderData: HomeData) {
       if (!cancelled) {
         setResults(fullData);
         pendingResults = null;
+        if (fullData.query && fullData.books.length > 0) {
+          cacheSearchPage(fullData);
+        }
       }
     });
     return () => {
@@ -102,6 +112,12 @@ export default function Home({ loaderData }: Route.ComponentProps) {
   const { query, page, total, totalPages, books, loading } = useFullResults(
     loaderData as HomeData
   );
+
+  useEffect(() => {
+    if (!loading && query && books.length > 0) {
+      cacheSearchPage({ query, page, total, totalPages, books });
+    }
+  }, [loading, query, page, total, totalPages, books]);
 
   return (
     <main className="app-container">
