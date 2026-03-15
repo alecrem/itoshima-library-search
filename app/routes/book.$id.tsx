@@ -5,6 +5,7 @@ import type { Route } from "./+types/book.$id";
 import { fetchBookDetail } from "~/lib/library.server";
 import { parseBookDetail } from "~/lib/parser.server";
 import type { BookDetail } from "~/lib/parser.server";
+import { LibraryLink } from "~/components/LibraryLink";
 
 export function meta({ data: loaderData }: Route.MetaArgs) {
   const detail = loaderData as BookDetail | undefined;
@@ -28,7 +29,7 @@ export async function loader({ params }: Route.LoaderArgs) {
     throw new Response("Book not found", { status: 404 });
   }
 
-  return data(detail);
+  return data({ ...detail, bookId });
 }
 
 function useBookCover(isbn: string) {
@@ -96,6 +97,7 @@ export default function BookDetailPage({ loaderData }: Route.ComponentProps) {
               </span>
               <span className="avail-badge">予約: {detail.reservations}</span>
             </div>
+            <LibraryLink bookId={detail.bookId} className="detail-library-link" />
           </div>
         </div>
 
