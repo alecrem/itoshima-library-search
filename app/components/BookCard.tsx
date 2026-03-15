@@ -1,6 +1,7 @@
 import { Link } from "react-router";
 import type { Book } from "~/lib/parser.server";
 import { useBookCover } from "~/hooks/useBookCover";
+import { BookPlaceholder } from "./BookPlaceholder";
 import { LibraryLink } from "./LibraryLink";
 
 export function BookCard({ book }: { book: Book }) {
@@ -8,9 +9,9 @@ export function BookCard({ book }: { book: Book }) {
 
   return (
     <article className="book-card">
-      <div className="book-cover">
-        {coverUrl && <img src={coverUrl} alt="" loading="lazy" />}
-      </div>
+      <Link to={`/book/${book.id}`} prefetch="intent" className="book-cover">
+        {coverUrl ? <img src={coverUrl} alt="" loading="lazy" /> : <BookPlaceholder />}
+      </Link>
       <div className="book-info">
         <h3 className="book-title">
           <Link to={`/book/${book.id}`} prefetch="intent">

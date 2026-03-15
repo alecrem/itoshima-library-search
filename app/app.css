@@ -99,6 +99,19 @@ html.dark {
   @apply w-full rounded shadow-sm;
 }
 
+.book-placeholder {
+  @apply w-full aspect-[3/4] rounded bg-warm-100 dark:bg-slate-800
+         flex items-center justify-center text-stone-300 dark:text-slate-600;
+}
+
+.book-placeholder svg {
+  @apply w-1/2 h-1/2;
+}
+
+.detail-placeholder {
+  @apply w-full;
+}
+
 .book-info {
   @apply flex-1 min-w-0;
 }

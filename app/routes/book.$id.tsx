@@ -7,6 +7,7 @@ import { parseBookDetail } from "~/lib/parser.server";
 import type { BookDetail, Holding } from "~/lib/parser.server";
 import { getCachedBook } from "~/lib/book-cache";
 import { useBookCover } from "~/hooks/useBookCover";
+import { BookPlaceholder } from "~/components/BookPlaceholder";
 import { LibraryLink } from "~/components/LibraryLink";
 import { Footer } from "~/components/Footer";
 import { ThemeToggle } from "~/components/ThemeToggle";
@@ -114,11 +115,9 @@ export default function BookDetailPage({ loaderData }: Route.ComponentProps) {
 
       <article className="detail-page">
         <div className="detail-top">
-          {coverUrl && (
-            <div className="detail-cover">
-              <img src={coverUrl} alt="" />
-            </div>
-          )}
+          <div className="detail-cover">
+            {coverUrl ? <img src={coverUrl} alt="" /> : <BookPlaceholder className="detail-placeholder" />}
+          </div>
           <div className="detail-header">
             <h2 className="detail-title">{detail.title}</h2>
             {detail.subtitle && (
