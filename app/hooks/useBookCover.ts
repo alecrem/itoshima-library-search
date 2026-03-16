@@ -22,7 +22,7 @@ export function useBookCover(isbn: string) {
           setCoverUrl(url);
         }
       })
-      .catch(() => {});
+      .catch((e) => console.warn("Cover fetch failed:", isbn, e));
     return () => {
       cancelled = true;
     };

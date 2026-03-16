@@ -138,6 +138,7 @@ export function parseBookDetail(html: string): BookDetail {
   const description = getField("内容紹介");
   const otherInfo = getField("その他");
 
+  // The library's HTML uses an empty <th scope="row"></th> for the year row
   const yearTd = $table.find("th").filter((_i, el) => {
     const text = $(el).text().trim();
     return text === "" || text === "出版年";
