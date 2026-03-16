@@ -17,30 +17,19 @@
     "rules": {
       "recommended": true,
       "correctness": {
-        "noInnerDeclarations": "off",
-        "noUnusedVariables": "warn",
-        "noUnusedFunctionParameters": "warn",
-        "useExhaustiveDependencies": "warn"
+        "noInnerDeclarations": "off"
       },
       "suspicious": {
-        "noDoubleEquals": "warn",
-        "noRedeclare": "off",
-        "noArrayIndexKey": "warn"
+        "noRedeclare": "off"
       },
       "complexity": {
         "useArrowFunction": "off"
       },
       "a11y": {
-        "noSvgWithoutTitle": "warn",
         "noAutofocus": "off"
       },
-      "security": {
-        "noDangerouslySetInnerHtml": "warn"
-      },
       "style": {
-        "useNodejsImportProtocol": "off",
-        "useTemplate": "warn",
-        "noNonNullAssertion": "warn"
+        "useNodejsImportProtocol": "off"
       }
     }
   },

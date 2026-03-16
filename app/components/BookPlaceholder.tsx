@@ -8,6 +8,8 @@ export function BookPlaceholder({ className }: { className?: string }) {
         strokeWidth="1.2"
         strokeLinecap="round"
         strokeLinejoin="round"
+        role="img"
+        aria-label="本のアイコン"
       >
         <rect x="2" y="1" width="20" height="22" rx="2" />
         <line x1="7" y1="1" x2="7" y2="23" />

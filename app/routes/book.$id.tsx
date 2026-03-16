@@ -50,7 +50,7 @@ export async function clientLoader({
   serverLoader,
   params,
 }: Route.ClientLoaderArgs) {
-  const id = params.id!;
+  const id = params.id ?? "";
 
   const cachedDetail = getCachedBookDetail(id);
   if (cachedDetail) {
@@ -92,6 +92,7 @@ function useFullDetail(loaderData: DetailData) {
     setDetail(loaderData);
   }, [loaderData]);
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: pendingDetail is module-level, not a reactive dependency
   useEffect(() => {
     if (!pendingDetail) return;
     let cancelled = false;
@@ -199,8 +200,8 @@ export default function BookDetailPage({ loaderData }: Route.ComponentProps) {
                 </tr>
               </thead>
               <tbody>
-                {detail.holdings.map((h, i) => (
-                  <tr key={i}>
+                {detail.holdings.map((h) => (
+                  <tr key={`${h.library}-${h.location}-${h.status}`}>
                     <td>{h.library}</td>
                     <td>{h.type}</td>
                     <td>{h.location}</td>

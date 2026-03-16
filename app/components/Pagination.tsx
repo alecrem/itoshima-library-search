@@ -28,7 +28,7 @@ export function Pagination({
       )}
       {pages.map((p, i) =>
         p === "..." ? (
-          <span key={`ellipsis-${i}`} className="page-ellipsis">
+          <span key={`ellipsis-after-${pages[i - 1]}`} className="page-ellipsis">
             …
           </span>
         ) : (
