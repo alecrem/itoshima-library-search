@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import type { Route } from "./+types/home";
 import { fetchSearchResults } from "~/lib/library.server";
 import { parseSearchResults, type Book } from "~/lib/parser.server";
-import { type SearchFilters, EMPTY_FILTERS } from "~/lib/constants";
+import { type SearchFilters } from "~/lib/constants";
 import { getCachedSearchPage, cacheSearchPage } from "~/lib/book-cache";
 import { SearchBar } from "~/components/SearchBar";
 import { ResultsGrid } from "~/components/ResultsGrid";
@@ -22,23 +22,23 @@ export function meta() {
   ];
 }
 
+function parseList(value: string | null): string[] {
+  return value ? value.split(",").filter(Boolean) : [];
+}
+
 function filtersFromUrl(url: URL): SearchFilters {
   return {
     keyword: url.searchParams.get("q") ?? "",
     author: url.searchParams.get("author") ?? "",
     yearFrom: url.searchParams.get("yearFrom") ?? "",
     yearTo: url.searchParams.get("yearTo") ?? "",
-    branch: url.searchParams.get("branch") ?? "",
-    materialType: url.searchParams.get("type") ?? "",
+    branches: parseList(url.searchParams.get("branch")),
+    materialTypes: parseList(url.searchParams.get("type")),
   };
 }
 
-function hasActiveFilters(filters: SearchFilters): boolean {
-  return !!(filters.author || filters.yearFrom || filters.yearTo || filters.branch || filters.materialType);
-}
-
 function cacheKey(filters: SearchFilters, page: number): string {
-  return `${filters.keyword}|${filters.author}|${filters.yearFrom}|${filters.yearTo}|${filters.branch}|${filters.materialType}:${page}`;
+  return `${filters.keyword}|${filters.author}|${filters.yearFrom}|${filters.yearTo}|${filters.branches.join(",")}|${filters.materialTypes.join(",")}:${page}`;
 }
 
 export async function loader({ request }: Route.LoaderArgs) {
@@ -46,8 +46,8 @@ export async function loader({ request }: Route.LoaderArgs) {
   const filters = filtersFromUrl(url);
   const page = Math.max(1, parseInt(url.searchParams.get("page") ?? "1", 10));
 
-  if (!filters.keyword && !hasActiveFilters(filters)) {
-    return data({ filters: EMPTY_FILTERS, page: 1, total: null, totalPages: 1, books: [] });
+  if (!filters.keyword && !filters.author) {
+    return data({ filters, page: 1, total: null, totalPages: 1, books: [] });
   }
 
   const html = await fetchSearchResults(filters, page);
@@ -79,9 +79,9 @@ export async function clientLoader({
   const filters = filtersFromUrl(url);
   const page = Math.max(1, parseInt(url.searchParams.get("page") ?? "1", 10));
 
-  if (!filters.keyword && !hasActiveFilters(filters)) {
+  if (!filters.keyword && !filters.author) {
     pendingResults = null;
-    return { filters: EMPTY_FILTERS, page: 1, total: null, totalPages: 1, books: [] };
+    return { filters, page: 1, total: null, totalPages: 1, books: [] };
   }
 
   const key = cacheKey(filters, page);

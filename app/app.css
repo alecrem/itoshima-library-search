@@ -92,12 +92,12 @@ html.dark {
          text-sm;
 }
 
-.filter-select {
-  @apply px-3 py-1.5 border border-warm-200 dark:border-slate-700 rounded
-         bg-white dark:bg-slate-900
-         text-stone-900 dark:text-slate-100
-         focus:outline-none focus:ring-2 focus:ring-amber-600 dark:focus:ring-sand-400
-         text-sm;
+.checkbox-group {
+  @apply flex flex-wrap gap-x-4 gap-y-1;
+}
+
+.checkbox-label {
+  @apply flex items-center gap-1.5 text-sm text-stone-700 dark:text-slate-300 cursor-pointer;
 }
 
 .year-range {
@@ -110,6 +110,33 @@ html.dark {
 
 .year-separator {
   @apply text-stone-400 dark:text-slate-500;
+}
+
+.clearable-input {
+  @apply relative flex-1;
+}
+
+.clearable-input input {
+  @apply w-full pr-8;
+}
+
+.clear-button {
+  @apply absolute right-2 top-1/2 -translate-y-1/2
+         w-5 h-5 flex items-center justify-center rounded-full
+         text-stone-400 dark:text-slate-500
+         hover:text-stone-600 dark:hover:text-slate-300
+         hover:bg-stone-200 dark:hover:bg-slate-700
+         transition-colors cursor-pointer text-sm leading-none;
+}
+
+.search-hint {
+  @apply mt-2 text-sm text-amber-700 dark:text-sand-400;
+}
+
+.reset-button {
+  @apply self-start text-sm text-stone-500 dark:text-slate-400
+         hover:text-amber-800 dark:hover:text-sand-400
+         transition-colors cursor-pointer mt-1;
 }
 
 .search-input {

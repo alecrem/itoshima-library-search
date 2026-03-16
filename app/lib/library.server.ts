@@ -58,10 +58,12 @@ export async function fetchSearchResults(
     overrides.publiy3 = filters.yearTo;
     overrides.publiy4 = "12";
   }
-  if (filters.branch) overrides.kan = filters.branch;
-  if (filters.materialType) overrides.btskbn = filters.materialType;
+  if (filters.materialTypes.length > 0) overrides.btskbn = filters.materialTypes.join("");
 
   const body = searchParams(overrides);
+  for (const branch of filters.branches) {
+    body.append("kan", branch);
+  }
 
   const response = await fetch(SEARCH_URL, {
     method: "POST",
