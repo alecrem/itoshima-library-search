@@ -34,6 +34,7 @@ export function ThemeToggle() {
         strokeWidth="2"
         strokeLinecap="round"
         strokeLinejoin="round"
+        aria-hidden="true"
       >
         {theme === "dark" ? (
           <circle cx="12" cy="12" r="5" />

@@ -1,4 +1,5 @@
 import * as cheerio from "cheerio";
+import type { Element } from "domhandler";
 
 export type Book = {
   id: string;
@@ -24,7 +25,7 @@ export function parseSearchResults(html: string): SearchResults {
   const $ = cheerio.load(html);
 
   const extractLabelText = (
-    $lis: cheerio.Cheerio<cheerio.Element>,
+    $lis: cheerio.Cheerio<Element>,
     label: string
   ): string => {
     const li = $lis

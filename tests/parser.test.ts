@@ -68,7 +68,7 @@ describe("parseSearchResults", () => {
   it("marks lent books as unavailable", () => {
     const lentBook = results.books.find((b) => !b.available);
     expect(lentBook).toBeDefined();
-    expect(lentBook!.title).toBe("あたまの底のさびしい歌");
+    expect(lentBook?.title).toBe("あたまの底のさびしい歌");
   });
 
   it("returns empty results for html with no books", () => {

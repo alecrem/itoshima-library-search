@@ -131,6 +131,7 @@ function useFullResults(loaderData: HomeData) {
     setResults(loaderData);
   }, [loaderData]);
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: pendingResults is module-level, not a reactive dependency
   useEffect(() => {
     if (!pendingResults) return;
     let cancelled = false;
