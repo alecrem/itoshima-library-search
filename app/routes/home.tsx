@@ -1,9 +1,9 @@
-import { data } from "react-router";
-import { useEffect, useState } from "react";
+import { data, useFetcher } from "react-router";
+import { useEffect, useRef, useState } from "react";
 import type { Route } from "./+types/home";
 import { fetchSearchResults } from "~/lib/library.server";
 import { parseSearchResults, type Book } from "~/lib/parser.server";
-import { type SearchFilters } from "~/lib/constants";
+import { PAGE_SIZE, type SearchFilters, filtersToSearchParams } from "~/lib/constants";
 import { getCachedSearchPage, cacheSearchPage } from "~/lib/book-cache";
 import { SearchBar } from "~/components/SearchBar";
 import { ResultsGrid } from "~/components/ResultsGrid";
@@ -47,18 +47,50 @@ export async function loader({ request }: Route.LoaderArgs) {
   const page = Math.max(1, parseInt(url.searchParams.get("page") ?? "1", 10));
 
   if (!filters.keyword && !filters.author) {
-    return data({ filters, page: 1, total: null, totalPages: 1, books: [] });
+    return data({ filters, page: 1, total: null, totalPages: 1, books: [], adjacentPages: [] });
   }
 
-  const html = await fetchSearchResults(filters, page);
+  // Fetch in aligned 3-page blocks to pre-cache adjacent pages.
+  // Block 1 = pages 1-3, block 2 = pages 4-6, etc.
+  const BLOCK_SIZE = 3;
+  const fetchCount = PAGE_SIZE * BLOCK_SIZE;
+  const apiPage = Math.ceil(page / BLOCK_SIZE);
+  const blockFirstPage = (apiPage - 1) * BLOCK_SIZE + 1;
+
+  const html = await fetchSearchResults(filters, apiPage, fetchCount);
   const results = parseSearchResults(html);
+
+  const total = results.total;
+  const totalPages = total > 0 ? Math.ceil(total / PAGE_SIZE) : 1;
+
+  // Slice fetched books into individual pages
+  const indexInBlock = page - blockFirstPage;
+  const currentBooks = results.books.slice(
+    indexInBlock * PAGE_SIZE,
+    (indexInBlock + 1) * PAGE_SIZE
+  );
+
+  const adjacentPages: { page: number; books: Book[] }[] = [];
+  for (let i = 0; i < BLOCK_SIZE; i++) {
+    const p = blockFirstPage + i;
+    if (p === page || p > totalPages) continue;
+    const pageBooks = results.books.slice(i * PAGE_SIZE, (i + 1) * PAGE_SIZE);
+    if (pageBooks.length > 0) {
+      adjacentPages.push({ page: p, books: pageBooks });
+    }
+  }
 
   return data({
     filters,
-    ...results,
-    total: results.total as number | null,
+    page,
+    total: total as number | null,
+    totalPages,
+    books: currentBooks,
+    adjacentPages,
   });
 }
+
+type AdjacentPage = { page: number; books: Book[] };
 
 type HomeData = {
   filters: SearchFilters;
@@ -66,8 +98,23 @@ type HomeData = {
   total: number | null;
   totalPages: number;
   books: Book[];
+  adjacentPages?: AdjacentPage[];
   loading?: boolean;
 };
+
+function cacheAdjacentPages(d: HomeData) {
+  for (const adj of d.adjacentPages ?? []) {
+    const adjKey = cacheKey(d.filters, adj.page);
+    if (!getCachedSearchPage(adjKey)) {
+      cacheSearchPage(adjKey, {
+        page: adj.page,
+        total: d.total,
+        totalPages: d.totalPages,
+        books: adj.books,
+      });
+    }
+  }
+}
 
 let pendingResults: Promise<HomeData> | null = null;
 
@@ -89,6 +136,16 @@ export async function clientLoader({
   if (cached) {
     pendingResults = null;
     return { ...cached, filters, loading: false };
+  }
+
+  // Prefetch requests (from useFetcher) await the full response and cache it
+  if (url.searchParams.has("_prefetch")) {
+    const result = (await serverLoader()) as HomeData;
+    if (result.books.length > 0) {
+      cacheSearchPage(key, result);
+    }
+    cacheAdjacentPages(result);
+    return { ...result, loading: false };
   }
 
   pendingResults = serverLoader() as Promise<HomeData>;
@@ -120,6 +177,7 @@ function useFullResults(loaderData: HomeData) {
           const key = cacheKey(fullData.filters, fullData.page);
           cacheSearchPage(key, fullData);
         }
+        cacheAdjacentPages(fullData);
       }
     });
     return () => {
@@ -130,15 +188,55 @@ function useFullResults(loaderData: HomeData) {
   return results;
 }
 
+function usePrefetchAdjacentPages(filters: SearchFilters, page: number, totalPages: number, loading?: boolean) {
+  const prevFetcher = useFetcher<HomeData>();
+  const nextFetcher = useFetcher<HomeData>();
+  const prefetchedRef = useRef("");
+
+  useEffect(() => {
+    if (loading) return;
+    const currentKey = cacheKey(filters, page);
+    if (prefetchedRef.current === currentKey) return;
+    prefetchedRef.current = currentKey;
+
+    const base = filtersToSearchParams(filters);
+
+    if (page > 1 && !getCachedSearchPage(cacheKey(filters, page - 1))) {
+      prevFetcher.load(`/?${base}&page=${page - 1}&_prefetch`);
+    }
+    if (page < totalPages && !getCachedSearchPage(cacheKey(filters, page + 1))) {
+      nextFetcher.load(`/?${base}&page=${page + 1}&_prefetch`);
+    }
+  }, [filters, page, totalPages, loading]);
+
+  useEffect(() => {
+    if (prevFetcher.data && prevFetcher.data.books.length > 0) {
+      const d = prevFetcher.data;
+      cacheSearchPage(cacheKey(d.filters, d.page), d);
+      cacheAdjacentPages(d);
+    }
+  }, [prevFetcher.data]);
+
+  useEffect(() => {
+    if (nextFetcher.data && nextFetcher.data.books.length > 0) {
+      const d = nextFetcher.data;
+      cacheSearchPage(cacheKey(d.filters, d.page), d);
+      cacheAdjacentPages(d);
+    }
+  }, [nextFetcher.data]);
+}
+
 export default function Home({ loaderData }: Route.ComponentProps) {
-  const { filters, page, total, totalPages, books, loading } = useFullResults(
-    loaderData as HomeData
-  );
+  const results = useFullResults(loaderData as HomeData);
+  const { filters, page, total, totalPages, books, loading } = results;
+
+  usePrefetchAdjacentPages(filters, page, totalPages, loading);
 
   useEffect(() => {
     if (!loading && books.length > 0) {
       const key = cacheKey(filters, page);
       cacheSearchPage(key, { filters, page, total, totalPages, books });
+      cacheAdjacentPages(results);
     }
   }, [loading, filters, page, total, totalPages, books]);
 
