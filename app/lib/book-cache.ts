@@ -23,7 +23,6 @@ export function getCachedCoverUrl(isbn: string): string | null {
 }
 
 type SearchPage = {
-  query: string;
   page: number;
   total: number | null;
   totalPages: number;
@@ -32,17 +31,13 @@ type SearchPage = {
 
 const searchCache = new Map<string, SearchPage>();
 
-function searchKey(query: string, page: number): string {
-  return `${query}:${page}`;
-}
-
-export function cacheSearchPage(data: SearchPage) {
-  searchCache.set(searchKey(data.query, data.page), data);
+export function cacheSearchPage(key: string, data: SearchPage) {
+  searchCache.set(key, data);
   cacheBooks(data.books);
 }
 
-export function getCachedSearchPage(query: string, page: number): SearchPage | undefined {
-  return searchCache.get(searchKey(query, page));
+export function getCachedSearchPage(key: string): SearchPage | undefined {
+  return searchCache.get(key);
 }
 
 export function cacheBookDetail(id: string, detail: BookDetail) {

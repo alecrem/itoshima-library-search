@@ -1,11 +1,12 @@
 import { Link } from "react-router";
+import { type SearchFilters, filtersToSearchParams } from "~/lib/constants";
 
 export function Pagination({
-  query,
+  filters,
   page,
   totalPages,
 }: {
-  query: string;
+  filters: SearchFilters;
   page: number;
   totalPages: number;
 }) {
@@ -13,10 +14,15 @@ export function Pagination({
 
   const pages = buildPageNumbers(page, totalPages);
 
+  function pageUrl(p: number): string {
+    const base = filtersToSearchParams(filters);
+    return `/?${base}&page=${p}`;
+  }
+
   return (
     <nav className="pagination" aria-label="ページ移動">
       {page > 1 && (
-        <Link to={`/?q=${encodeURIComponent(query)}&page=${page - 1}`} className="page-link">
+        <Link to={pageUrl(page - 1)} className="page-link">
           ← 前
         </Link>
       )}
@@ -28,7 +34,7 @@ export function Pagination({
         ) : (
           <Link
             key={p}
-            to={`/?q=${encodeURIComponent(query)}&page=${p}`}
+            to={pageUrl(p)}
             className={`page-link ${p === page ? "current" : ""}`}
             aria-current={p === page ? "page" : undefined}
           >
@@ -37,7 +43,7 @@ export function Pagination({
         )
       )}
       {page < totalPages && (
-        <Link to={`/?q=${encodeURIComponent(query)}&page=${page + 1}`} className="page-link">
+        <Link to={pageUrl(page + 1)} className="page-link">
           次 →
         </Link>
       )}

@@ -1,7 +1,7 @@
-import { PAGE_SIZE } from "./constants";
+import { PAGE_SIZE, type SearchFilters } from "./constants";
 
 const BASE_URL = "https://www.lib-itoshima.jp/WebOpac/webopac";
-const SEARCH_URL = `${BASE_URL}/searchlist.do`;
+const SEARCH_URL = `${BASE_URL}/searchinput.do`;
 const DETAIL_URL = `${BASE_URL}/searchdetail.do`;
 
 const COMMON_HEADERS = {
@@ -21,9 +21,6 @@ function searchParams(overrides: Record<string, string>): URLSearchParams {
     publiy2: "",
     publiy3: "",
     publiy4: "",
-    allcount: "",
-    title: "",
-    titflg: "",
     publish: "",
     pubflg: "",
     publishid: "",
@@ -31,29 +28,42 @@ function searchParams(overrides: Record<string, string>): URLSearchParams {
     bunrui: "",
     bunruicode: "",
     recommend: "",
-    syubetu: "",
-    prize: "",
-    przflg: "",
-    nasflg: "",
-    seiky1: "",
-    kanflg: "",
-    media: "",
-    order: "",
-    man: "",
+    bkskbn: "",
+    btskbn: "",
+    bkskbnHdn: "01:02:03:",
+    btskbnHdn: "11:12:23:34:",
+    bkskbnRange: "",
+    btskbnRange: "",
     ...overrides,
   });
 }
 
 export async function fetchSearchResults(
-  keyword: string,
+  filters: SearchFilters,
   page = 1,
   count = PAGE_SIZE
 ): Promise<string> {
-  const body = searchParams({
+  const overrides: Record<string, string> = {
     page: String(page),
     count: String(count),
-    keyword,
-  });
+    keyword: filters.keyword,
+  };
+
+  if (filters.author) overrides.author = filters.author;
+  if (filters.yearFrom) {
+    overrides.publiy1 = filters.yearFrom;
+    overrides.publiy2 = "01";
+  }
+  if (filters.yearTo) {
+    overrides.publiy3 = filters.yearTo;
+    overrides.publiy4 = "12";
+  }
+  if (filters.materialTypes.length > 0) overrides.btskbn = filters.materialTypes.join("");
+
+  const body = searchParams(overrides);
+  for (const branch of filters.branches) {
+    body.append("kan", branch);
+  }
 
   const response = await fetch(SEARCH_URL, {
     method: "POST",

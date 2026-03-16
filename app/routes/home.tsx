@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import type { Route } from "./+types/home";
 import { fetchSearchResults } from "~/lib/library.server";
 import { parseSearchResults, type Book } from "~/lib/parser.server";
+import { type SearchFilters } from "~/lib/constants";
 import { getCachedSearchPage, cacheSearchPage } from "~/lib/book-cache";
 import { SearchBar } from "~/components/SearchBar";
 import { ResultsGrid } from "~/components/ResultsGrid";
@@ -21,27 +22,46 @@ export function meta() {
   ];
 }
 
+function parseList(value: string | null): string[] {
+  return value ? value.split(",").filter(Boolean) : [];
+}
+
+function filtersFromUrl(url: URL): SearchFilters {
+  return {
+    keyword: url.searchParams.get("q") ?? "",
+    author: url.searchParams.get("author") ?? "",
+    yearFrom: url.searchParams.get("yearFrom") ?? "",
+    yearTo: url.searchParams.get("yearTo") ?? "",
+    branches: parseList(url.searchParams.get("branch")),
+    materialTypes: parseList(url.searchParams.get("type")),
+  };
+}
+
+function cacheKey(filters: SearchFilters, page: number): string {
+  return `${filters.keyword}|${filters.author}|${filters.yearFrom}|${filters.yearTo}|${filters.branches.join(",")}|${filters.materialTypes.join(",")}:${page}`;
+}
+
 export async function loader({ request }: Route.LoaderArgs) {
   const url = new URL(request.url);
-  const query = url.searchParams.get("q") ?? "";
+  const filters = filtersFromUrl(url);
   const page = Math.max(1, parseInt(url.searchParams.get("page") ?? "1", 10));
 
-  if (!query) {
-    return data({ query, page: 1, total: null, totalPages: 1, books: [] });
+  if (!filters.keyword && !filters.author) {
+    return data({ filters, page: 1, total: null, totalPages: 1, books: [] });
   }
 
-  const html = await fetchSearchResults(query, page);
+  const html = await fetchSearchResults(filters, page);
   const results = parseSearchResults(html);
 
   return data({
-    query,
+    filters,
     ...results,
     total: results.total as number | null,
   });
 }
 
 type HomeData = {
-  query: string;
+  filters: SearchFilters;
   page: number;
   total: number | null;
   totalPages: number;
@@ -56,23 +76,24 @@ export async function clientLoader({
   request,
 }: Route.ClientLoaderArgs) {
   const url = new URL(request.url);
-  const query = url.searchParams.get("q") ?? "";
+  const filters = filtersFromUrl(url);
   const page = Math.max(1, parseInt(url.searchParams.get("page") ?? "1", 10));
 
-  if (!query) {
+  if (!filters.keyword && !filters.author) {
     pendingResults = null;
-    return { query, page: 1, total: null, totalPages: 1, books: [] };
+    return { filters, page: 1, total: null, totalPages: 1, books: [] };
   }
 
-  const cached = getCachedSearchPage(query, page);
+  const key = cacheKey(filters, page);
+  const cached = getCachedSearchPage(key);
   if (cached) {
     pendingResults = null;
-    return { ...cached, loading: false };
+    return { ...cached, filters, loading: false };
   }
 
   pendingResults = serverLoader() as Promise<HomeData>;
   return {
-    query,
+    filters,
     page,
     total: null,
     totalPages: 1,
@@ -95,8 +116,9 @@ function useFullResults(loaderData: HomeData) {
       if (!cancelled) {
         setResults(fullData);
         pendingResults = null;
-        if (fullData.query && fullData.books.length > 0) {
-          cacheSearchPage(fullData);
+        if (fullData.books.length > 0) {
+          const key = cacheKey(fullData.filters, fullData.page);
+          cacheSearchPage(key, fullData);
         }
       }
     });
@@ -109,15 +131,16 @@ function useFullResults(loaderData: HomeData) {
 }
 
 export default function Home({ loaderData }: Route.ComponentProps) {
-  const { query, page, total, totalPages, books, loading } = useFullResults(
+  const { filters, page, total, totalPages, books, loading } = useFullResults(
     loaderData as HomeData
   );
 
   useEffect(() => {
-    if (!loading && query && books.length > 0) {
-      cacheSearchPage({ query, page, total, totalPages, books });
+    if (!loading && books.length > 0) {
+      const key = cacheKey(filters, page);
+      cacheSearchPage(key, { filters, page, total, totalPages, books });
     }
-  }, [loading, query, page, total, totalPages, books]);
+  }, [loading, filters, page, total, totalPages, books]);
 
   return (
     <main className="app-container">
@@ -130,12 +153,12 @@ export default function Home({ loaderData }: Route.ComponentProps) {
         </h1>
         <ThemeToggle />
       </header>
-      <SearchBar query={query} total={total} page={page} loading={loading} />
+      <SearchBar filters={filters} total={total} page={page} loading={loading} />
       {!loading && (
         <>
           <ResultsGrid books={books} />
           {books.length > 0 && (
-            <Pagination query={query} page={page} totalPages={totalPages} />
+            <Pagination filters={filters} page={page} totalPages={totalPages} />
           )}
         </>
       )}
