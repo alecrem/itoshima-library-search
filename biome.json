@@ -1,0 +1,50 @@
+{
+  "$schema": "https://biomejs.dev/schemas/2.4.7/schema.json",
+  "vcs": {
+    "enabled": true,
+    "clientKind": "git",
+    "useIgnoreFile": true
+  },
+  "files": {
+    "ignoreUnknown": true,
+    "includes": ["app/**/*.ts", "app/**/*.tsx", "tests/**/*.ts"]
+  },
+  "formatter": {
+    "enabled": false
+  },
+  "linter": {
+    "enabled": true,
+    "rules": {
+      "recommended": true,
+      "correctness": {
+        "noInnerDeclarations": "off",
+        "noUnusedVariables": "warn",
+        "noUnusedFunctionParameters": "warn",
+        "useExhaustiveDependencies": "warn"
+      },
+      "suspicious": {
+        "noDoubleEquals": "warn",
+        "noRedeclare": "off",
+        "noArrayIndexKey": "warn"
+      },
+      "complexity": {
+        "useArrowFunction": "off"
+      },
+      "a11y": {
+        "noSvgWithoutTitle": "warn",
+        "noAutofocus": "off"
+      },
+      "security": {
+        "noDangerouslySetInnerHtml": "warn"
+      },
+      "style": {
+        "useNodejsImportProtocol": "off",
+        "useTemplate": "warn",
+        "noNonNullAssertion": "warn"
+      }
+    }
+  },
+  "assist": {
+    "enabled": false
+  }
+}
