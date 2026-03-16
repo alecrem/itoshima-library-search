@@ -1,3 +1,5 @@
+import { PAGE_SIZE } from "./constants";
+
 const BASE_URL = "https://www.lib-itoshima.jp/WebOpac/webopac";
 const SEARCH_URL = `${BASE_URL}/searchlist.do`;
 const DETAIL_URL = `${BASE_URL}/searchdetail.do`;
@@ -8,15 +10,9 @@ const COMMON_HEADERS = {
     "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:148.0) Gecko/20100101 Firefox/148.0",
 };
 
-export async function fetchSearchResults(
-  keyword: string,
-  page = 1,
-  count = 10
-): Promise<string> {
-  const body = new URLSearchParams({
-    page: String(page),
-    count: String(count),
-    keyword,
+function searchParams(overrides: Record<string, string>): URLSearchParams {
+  return new URLSearchParams({
+    keyword: "",
     keyflg: "and",
     author: "",
     autflg: "and",
@@ -44,6 +40,19 @@ export async function fetchSearchResults(
     media: "",
     order: "",
     man: "",
+    ...overrides,
+  });
+}
+
+export async function fetchSearchResults(
+  keyword: string,
+  page = 1,
+  count = PAGE_SIZE
+): Promise<string> {
+  const body = searchParams({
+    page: String(page),
+    count: String(count),
+    keyword,
   });
 
   const response = await fetch(SEARCH_URL, {
@@ -67,37 +76,10 @@ function extractSessionCookie(response: Response): string {
 
 export async function fetchBookDetail(bookId: string): Promise<string> {
   // Step 1: establish a session via a dummy search
-  const searchBody = new URLSearchParams({
+  const searchBody = searchParams({
     page: "1",
     count: "1",
     keyword: "*",
-    keyflg: "and",
-    author: "",
-    autflg: "and",
-    authorid: "",
-    publiy1: "",
-    publiy2: "",
-    publiy3: "",
-    publiy4: "",
-    allcount: "",
-    title: "",
-    titflg: "",
-    publish: "",
-    pubflg: "",
-    publishid: "",
-    isbn: "",
-    bunrui: "",
-    bunruicode: "",
-    recommend: "",
-    syubetu: "",
-    prize: "",
-    przflg: "",
-    nasflg: "",
-    seiky1: "",
-    kanflg: "",
-    media: "",
-    order: "",
-    man: "",
   });
 
   const searchResponse = await fetch(SEARCH_URL, {
