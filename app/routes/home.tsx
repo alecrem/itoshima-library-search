@@ -159,52 +159,61 @@ function useFullResults(loaderData: HomeData) {
 // Track in-flight prefetch requests to avoid duplicates
 const prefetchInFlight = new Set<string>();
 
-function usePrefetchNextBlock(filters: SearchFilters, page: number, totalPages: number, loading?: boolean) {
+function findUncachedPage(
+  filters: SearchFilters,
+  from: number,
+  to: number,
+): number {
+  const step = from <= to ? 1 : -1;
+  for (let p = from; step > 0 ? p <= to : p >= to; p += step) {
+    const key = cacheKey(filters, p);
+    if (!getCachedSearchPage(key) && !prefetchInFlight.has(key)) return p;
+  }
+  return 0;
+}
+
+function prefetchBlock(filters: SearchFilters, targetPage: number) {
+  const blockFirst = (Math.ceil(targetPage / BLOCK_SIZE) - 1) * BLOCK_SIZE + 1;
+  const blockKeys: string[] = [];
+  for (let i = 0; i < BLOCK_SIZE; i++) {
+    const key = cacheKey(filters, blockFirst + i);
+    blockKeys.push(key);
+    prefetchInFlight.add(key);
+  }
+
+  const params = filtersToSearchParams(filters);
+  fetch(`/api/search?${params}&page=${targetPage}`)
+    .then((res) => res.json())
+    .then((data: { total: number; totalPages: number; pages: { page: number; books: Book[] }[] }) => {
+      for (const entry of data.pages) {
+        const key = cacheKey(filters, entry.page);
+        if (!getCachedSearchPage(key)) {
+          cacheSearchPage(key, {
+            page: entry.page,
+            total: data.total,
+            totalPages: data.totalPages,
+            books: entry.books,
+          });
+        }
+      }
+    })
+    .catch(() => {})
+    .finally(() => {
+      for (const key of blockKeys) {
+        prefetchInFlight.delete(key);
+      }
+    });
+}
+
+function usePrefetchAdjacentBlocks(filters: SearchFilters, page: number, totalPages: number, loading?: boolean) {
   useEffect(() => {
     if (loading || totalPages <= 1) return;
 
-    // Find the first uncached page ahead (look up to 5 pages)
-    let targetPage = 0;
-    for (let p = page + 1; p <= Math.min(page + 5, totalPages); p++) {
-      const key = cacheKey(filters, p);
-      if (!getCachedSearchPage(key) && !prefetchInFlight.has(key)) {
-        targetPage = p;
-        break;
-      }
-    }
-    if (!targetPage) return;
+    const forward = findUncachedPage(filters, page + 1, Math.min(page + 5, totalPages));
+    if (forward) prefetchBlock(filters, forward);
 
-    const blockFirst = (Math.ceil(targetPage / BLOCK_SIZE) - 1) * BLOCK_SIZE + 1;
-    const blockKeys: string[] = [];
-    for (let i = 0; i < BLOCK_SIZE; i++) {
-      const key = cacheKey(filters, blockFirst + i);
-      blockKeys.push(key);
-      prefetchInFlight.add(key);
-    }
-
-    const params = filtersToSearchParams(filters);
-    fetch(`/api/search?${params}&page=${targetPage}`)
-      .then((res) => res.json())
-      .then((data: { total: number; totalPages: number; pages: { page: number; books: Book[] }[] }) => {
-        for (const entry of data.pages) {
-          const key = cacheKey(filters, entry.page);
-          if (!getCachedSearchPage(key)) {
-            cacheSearchPage(key, {
-              page: entry.page,
-              total: data.total,
-              totalPages: data.totalPages,
-              books: entry.books,
-            });
-          }
-        }
-      })
-      .catch(() => {})
-      .finally(() => {
-        for (const key of blockKeys) {
-          prefetchInFlight.delete(key);
-        }
-      });
-    // No cleanup — fetch continues in background even if component re-renders
+    const backward = findUncachedPage(filters, page - 1, Math.max(page - 3, 1));
+    if (backward) prefetchBlock(filters, backward);
   }, [filters, page, totalPages, loading]);
 }
 
@@ -212,7 +221,7 @@ export default function Home({ loaderData }: Route.ComponentProps) {
   const results = useFullResults(loaderData as HomeData);
   const { filters, page, total, totalPages, books, loading } = results;
 
-  usePrefetchNextBlock(filters, page, totalPages, loading);
+  usePrefetchAdjacentBlocks(filters, page, totalPages, loading);
 
   return (
     <main className="app-container">
