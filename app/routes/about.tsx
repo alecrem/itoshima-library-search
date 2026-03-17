@@ -31,6 +31,7 @@ export default function About() {
           <ul className="about-features">
             <li>画面全体を読み込み直さず、検索結果や書籍の詳細をすばやく表示</li>
             <li>書籍の配架場所をポップアップなしでフロアマップ上に表示</li>
+            <li>検索結果や書籍ページのURLをそのまま共有できる</li>
           </ul>
           <p>
             このサイトは糸島市立図書館の公式サイトではありません。
