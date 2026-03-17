@@ -101,3 +101,4 @@ type Holding = {
 - 2026-03-15: Add book cover thumbnails (client-side Google Books API), detail pages with holdings
 - 2026-03-15: Add unofficial branding, disclaimer footer, OG meta tags, robots.txt, PWA manifest, favicon, MIT license
 - 2026-03-17: Add inline floor map on detail page showing book shelf location
+- 2026-03-17: Add test coverage for fetch functions (HTTP mock) and React components (jsdom + testing-library)
