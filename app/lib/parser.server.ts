@@ -98,6 +98,11 @@ export type Holding = {
   location: string;
   status: string;
   materialNo: string;
+  floorMapParams?: {
+    lcdcd: string;
+    doclno: string;
+    displcs: string;
+  };
 };
 
 export type BookDetail = {
@@ -158,13 +163,25 @@ export function parseBookDetail(html: string): BookDetail {
   $('table[summary="資料毎の状態表"] tbody tr').each((_i, el) => {
     const $tds = $(el).find("td");
     if ($tds.length >= 6) {
-      holdings.push({
+      const holding: Holding = {
         library: $tds.eq(1).text().trim(),
         type: $tds.eq(2).text().trim(),
         location: $tds.eq(3).text().trim(),
         status: $tds.eq(4).text().trim(),
         materialNo: $tds.eq(5).text().trim(),
-      });
+      };
+
+      const onclick = $tds.find("button[onclick*='action_detailplace_subwindow']").attr("onclick") ?? "";
+      const mapMatch = onclick.match(/action_detailplace_subwindow\(\d+,\s*'(\d+)',\s*(\d+),\s*'([^']+)'\)/);
+      if (mapMatch) {
+        holding.floorMapParams = {
+          lcdcd: mapMatch[1],
+          doclno: mapMatch[2],
+          displcs: mapMatch[3],
+        };
+      }
+
+      holdings.push(holding);
     }
   });
 

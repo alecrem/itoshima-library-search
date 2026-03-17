@@ -3,6 +3,7 @@ import { PAGE_SIZE, type SearchFilters } from "./constants";
 const BASE_URL = "https://www.lib-itoshima.jp/WebOpac/webopac";
 const SEARCH_URL = `${BASE_URL}/searchinput.do`;
 const DETAIL_URL = `${BASE_URL}/searchdetail.do`;
+const FLOOR_MAP_URL = `${BASE_URL}/searchdetailplace.do`;
 
 const COMMON_HEADERS = {
   "Content-Type": "application/x-www-form-urlencoded",
@@ -84,8 +85,7 @@ function extractSessionCookie(response: Response): string {
   return match ? match[1] : "";
 }
 
-export async function fetchBookDetail(bookId: string): Promise<string> {
-  // Step 1: establish a session via a dummy search
+async function establishSession(): Promise<string> {
   const searchBody = searchParams({
     page: "1",
     count: "1",
@@ -100,14 +100,17 @@ export async function fetchBookDetail(bookId: string): Promise<string> {
   });
 
   const sessionId = extractSessionCookie(searchResponse);
-  // Consume body to avoid leaking
   await searchResponse.text();
 
   if (!sessionId) {
     throw new Error("Failed to establish library session");
   }
 
-  // Step 2: fetch detail page using session cookie
+  return sessionId;
+}
+
+export async function fetchBookDetail(bookId: string): Promise<string> {
+  const sessionId = await establishSession();
   const detailBody = new URLSearchParams({
     biblioid: bookId,
     count: "999",
@@ -130,4 +133,35 @@ export async function fetchBookDetail(bookId: string): Promise<string> {
   }
 
   return detailResponse.text();
+}
+
+export async function fetchFloorMap(
+  biblioid: string,
+  lcdcd: string,
+  doclno: string,
+  displcs: string,
+): Promise<string> {
+  const sessionId = await establishSession();
+  const body = new URLSearchParams({
+    biblioid,
+    dispHaikaLcsCd: lcdcd,
+    docLno: doclno,
+    displcs,
+    page: "1",
+  });
+
+  const response = await fetch(FLOOR_MAP_URL, {
+    method: "POST",
+    headers: {
+      ...COMMON_HEADERS,
+      Cookie: `JSESSIONID=${sessionId}`,
+    },
+    body: body.toString(),
+  });
+
+  if (!response.ok) {
+    throw new Error(`Floor map fetch failed: ${response.status}`);
+  }
+
+  return response.text();
 }

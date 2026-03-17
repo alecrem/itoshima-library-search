@@ -32,6 +32,18 @@ Key params: `biblioid`, `count=999`, `screen=142`, `histnum=2`, `listtype=0`
 - `GET /` — search page
 - `GET /?q=KEYWORD&page=N` — search results (SSR)
 - `GET /book/:id` — book detail page (SSR)
+- `GET /api/floormap?biblioid=X&lcdcd=Y&doclno=Z&displcs=W` — floor map data (JSON)
+
+### Library API — Floor Map
+
+`POST https://www.lib-itoshima.jp/WebOpac/webopac/searchdetailplace.do`
+
+Requires a `JSESSIONID` session cookie.
+Key params: `biblioid`, `dispHaikaLcsCd` (library code), `docLno` (document number), `displcs` (library name)
+
+Returns HTML with a floor plan background image and JavaScript that positions red star markers
+on a 40×23 grid overlay (640×368px image). Not all holdings have floor maps — 閉架 (closed stacks)
+and some libraries don't provide them.
 
 ### External APIs (client-side)
 
@@ -75,6 +87,11 @@ type Holding = {
   location: string;
   status: string;
   materialNo: string;
+  floorMapParams?: {
+    lcdcd: string;
+    doclno: string;
+    displcs: string;
+  };
 }
 ```
 
@@ -83,3 +100,4 @@ type Holding = {
 - 2026-03-15: Initial implementation — search, pagination, availability badges
 - 2026-03-15: Add book cover thumbnails (client-side Google Books API), detail pages with holdings
 - 2026-03-15: Add unofficial branding, disclaimer footer, OG meta tags, robots.txt, PWA manifest, favicon, MIT license
+- 2026-03-17: Add inline floor map on detail page showing book shelf location

@@ -12,6 +12,7 @@ import { LibraryLink } from "~/components/LibraryLink";
 import { Footer } from "~/components/Footer";
 import { ThemeToggle } from "~/components/ThemeToggle";
 import { BookIcon } from "~/components/BookIcon";
+import { HoldingsSection } from "~/components/HoldingsSection";
 
 export function meta({ data: loaderData }: Route.MetaArgs) {
   const detail = loaderData as BookDetail | undefined;
@@ -189,37 +190,7 @@ export default function BookDetailPage({ loaderData }: Route.ComponentProps) {
         )}
 
         {detail.holdings.length > 0 && (
-          <section className="detail-section">
-            <h3>所蔵情報</h3>
-            <table className="holdings-table">
-              <thead>
-                <tr>
-                  <th>館</th>
-                  <th>種別</th>
-                  <th>場所</th>
-                  <th>状態</th>
-                </tr>
-              </thead>
-              <tbody>
-                {detail.holdings.map((h) => (
-                  <tr key={`${h.library}-${h.location}-${h.status}`}>
-                    <td>{h.library}</td>
-                    <td>{h.type}</td>
-                    <td>{h.location}</td>
-                    <td
-                      className={
-                        h.status.includes("貸出できます")
-                          ? "status-available"
-                          : "status-lent"
-                      }
-                    >
-                      {h.status}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </section>
+          <HoldingsSection holdings={detail.holdings} bookId={detail.bookId} />
         )}
       </article>
       <Footer />

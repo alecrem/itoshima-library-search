@@ -375,6 +375,52 @@ html.dark {
   @apply text-red-700 dark:text-red-300 font-medium;
 }
 
+/* Floor map */
+.floor-map-toggle {
+  @apply text-xs text-stone-600 dark:text-slate-300
+         bg-warm-100 dark:bg-slate-700
+         border border-warm-200 dark:border-slate-600
+         rounded px-2 py-0.5 cursor-pointer
+         hover:bg-warm-200 dark:hover:bg-slate-600
+         transition-colors;
+}
+
+.floor-map-cell {
+  @apply p-0;
+}
+
+.floor-map-loading {
+  @apply text-sm text-stone-500 dark:text-slate-400 py-4 text-center;
+}
+
+.floor-map {
+  @apply py-3;
+}
+
+.floor-map-container {
+  @apply relative w-full max-w-160 mx-auto;
+}
+
+.floor-map-image {
+  @apply w-full h-auto block;
+}
+
+.floor-map-grid {
+  @apply absolute inset-0;
+  display: grid;
+  pointer-events: none;
+}
+
+.floor-map-star {
+  @apply text-red-600 font-bold text-center leading-none;
+  font-size: clamp(0.5rem, 2vw, 1rem);
+  animation: floor-map-blink 0.7s step-end 4;
+}
+
+@keyframes floor-map-blink {
+  50% { opacity: 0; }
+}
+
 /* Footer */
 .app-footer {
   @apply mt-12 pt-6 border-t border-warm-200 dark:border-slate-800
