@@ -11,6 +11,7 @@ import { BookPlaceholder } from "~/components/BookPlaceholder";
 import { LibraryLink } from "~/components/LibraryLink";
 import { Footer } from "~/components/Footer";
 import { ThemeToggle } from "~/components/ThemeToggle";
+import { BookIcon } from "~/components/BookIcon";
 
 export function meta({ data: loaderData }: Route.MetaArgs) {
   const detail = loaderData as BookDetail | undefined;
@@ -125,7 +126,7 @@ export default function BookDetailPage({ loaderData }: Route.ComponentProps) {
     <main className="app-container">
       <header className="app-header">
         <h1>
-          <Link to="/"><img src="/icon-192.png" alt="" className="header-icon" />糸島図書館 非公式検索</Link>
+          <Link to="/"><BookIcon className="header-icon" />糸島図書館 非公式検索</Link>
         </h1>
         <ThemeToggle />
       </header>

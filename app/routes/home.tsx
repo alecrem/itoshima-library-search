@@ -11,6 +11,7 @@ import { ResultsGrid } from "~/components/ResultsGrid";
 import { Pagination } from "~/components/Pagination";
 import { Footer } from "~/components/Footer";
 import { ThemeToggle } from "~/components/ThemeToggle";
+import { BookIcon } from "~/components/BookIcon";
 
 export function meta() {
   return [
@@ -229,7 +230,7 @@ export default function Home({ loaderData }: Route.ComponentProps) {
       <header className="app-header">
         <h1>
           <a href="/">
-            <img src="/icon-192.png" alt="" className="header-icon" />
+            <BookIcon className="header-icon" />
             糸島図書館 非公式検索
           </a>
         </h1>
