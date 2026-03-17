@@ -4,7 +4,7 @@ export function Footer() {
   return (
     <footer className="app-footer">
       <p>
-        このサイトは
+        ここは
         <a
           href="https://itoshima.libweb.jp/"
           target="_blank"

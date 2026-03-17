@@ -466,6 +466,15 @@ html.dark {
   @apply text-sm leading-relaxed list-disc pl-5 space-y-1;
 }
 
+.about-checklist {
+  @apply text-sm leading-relaxed list-none pl-0 space-y-1;
+}
+
+.about-checklist li::before {
+  content: "✓ ";
+  @apply text-green-600 dark:text-green-400 font-bold;
+}
+
 .about-cfi {
   @apply flex gap-4 items-start;
 }

@@ -46,6 +46,18 @@ export default function About() {
           </p>
         </section>
 
+        <section className="about-section">
+          <h3>このサイトのいいところ</h3>
+          <ul className="about-checklist">
+            <li>オープンソース</li>
+            <li>Cookieなし・トラッキングなし</li>
+            <li>個人情報の収集なし</li>
+            <li>広告なし</li>
+            <li>無料</li>
+            <li>お金にならない</li>
+          </ul>
+        </section>
+
         <section className="about-section about-cfi">
           <div>
             <h3>Code for Itoshima</h3>
