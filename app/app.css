@@ -424,10 +424,56 @@ html.dark {
 /* Footer */
 .app-footer {
   @apply mt-12 pt-6 border-t border-warm-200 dark:border-slate-800
-         text-xs text-stone-400 dark:text-slate-500 text-center space-y-1;
+         text-xs text-stone-400 dark:text-slate-500
+         flex items-center justify-between;
 }
 
 .app-footer a {
   @apply text-stone-500 dark:text-slate-400 hover:text-stone-700 dark:hover:text-slate-300
          underline transition-colors;
+}
+
+.footer-links {
+  @apply flex items-center gap-2;
+}
+
+.footer-separator {
+  @apply text-stone-300 dark:text-slate-600;
+}
+
+/* About page */
+.about-page {
+  @apply space-y-6;
+}
+
+.about-page h2 {
+  @apply text-xl font-bold;
+}
+
+.about-section {
+  @apply space-y-2;
+}
+
+.about-section h3 {
+  @apply text-sm font-semibold text-stone-500 dark:text-slate-400 uppercase tracking-wide;
+}
+
+.about-section p {
+  @apply text-sm leading-relaxed;
+}
+
+.about-features {
+  @apply text-sm leading-relaxed list-disc pl-5 space-y-1;
+}
+
+.about-cfi {
+  @apply flex gap-4 items-start;
+}
+
+.about-cfi-logo {
+  @apply w-20 h-auto rounded shrink-0;
+}
+
+.github-link {
+  @apply inline-flex items-center gap-1.5;
 }

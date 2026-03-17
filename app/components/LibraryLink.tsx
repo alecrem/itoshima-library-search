@@ -24,7 +24,7 @@ export function LibraryLink({
       <input type="hidden" name="histnum" value="2" />
       <input type="hidden" name="listtype" value="0" />
       <button type="submit" className="library-link">
-        図書館サイトで見る ↗
+        予約などは図書館公式サイトで ↗
       </button>
     </form>
   );

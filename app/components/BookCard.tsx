@@ -2,7 +2,6 @@ import { Link } from "react-router";
 import type { Book } from "~/lib/parser.server";
 import { useBookCover } from "~/hooks/useBookCover";
 import { BookPlaceholder } from "./BookPlaceholder";
-import { LibraryLink } from "./LibraryLink";
 
 export function BookCard({ book }: { book: Book }) {
   const coverUrl = useBookCover(book.isbn);
@@ -33,7 +32,6 @@ export function BookCard({ book }: { book: Book }) {
           >
             {book.available ? "利用可能" : "貸出中"}
           </span>
-          <LibraryLink bookId={book.id} />
         </div>
       </div>
     </article>
